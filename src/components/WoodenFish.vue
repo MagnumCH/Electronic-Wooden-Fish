@@ -1,12 +1,14 @@
 <template>
   <div class="wooden-fish-container" @click="handleClick" @touchstart="handleTouch">
-    <div class="hammer" :class="{ hitting: isHitting }">
-      <div class="hammer-head"></div>
-      <div class="hammer-handle"></div>
-    </div>
-    <div class="fish" :class="{ hitting: isHitting }" :style="fishStyle">
-      <div class="fish-body">
-        <div class="fish-bell">咚</div>
+    <div class="fish-group" :style="fishGroupStyle">
+      <div class="hammer" :class="{ hitting: isHitting }">
+        <div class="hammer-head"></div>
+        <div class="hammer-handle"></div>
+      </div>
+      <div class="fish" :class="{ hitting: isHitting }" :style="fishStyle">
+        <div class="fish-body">
+          <div class="fish-bell">咚</div>
+        </div>
       </div>
     </div>
     <div class="click-effect" v-if="showEffect">
@@ -20,7 +22,7 @@ import { ref, computed } from 'vue'
 import { useGameData } from '../composables/useGameData'
 import { useAudio } from '../composables/useAudio'
 
-const { merit, totalMerit, currentSkin, fishLevel, getClickPower, addMerit } = useGameData()
+const { currentSkin, fishLevel, getClickPower, addMerit } = useGameData()
 const { initAudio, createSound } = useAudio()
 
 const isHitting = ref(false)
@@ -37,14 +39,18 @@ const skinColors = {
   rainbow: { primary: '#ff6b6b', secondary: '#ffd93d', accent: '#6bcb77' }
 }
 
+const scale = computed(() => 1 + (fishLevel.value - 1) * 0.08)
+
+const fishGroupStyle = computed(() => ({
+  '--group-scale': scale.value
+}))
+
 const fishStyle = computed(() => {
   const skin = skinColors[currentSkin.value] || skinColors.default
-  const scale = 1 + (fishLevel.value - 1) * 0.05
   return {
     '--fish-primary': skin.primary,
     '--fish-secondary': skin.secondary,
-    '--fish-accent': skin.accent,
-    '--fish-scale': scale
+    '--fish-accent': skin.accent
   }
 })
 
@@ -69,12 +75,11 @@ function performHit(x, y) {
 
   addMerit()
 
-  // 显示弹出效果
   showEffect.value = true
   const offsetX = (Math.random() - 0.5) * 60
   popStyle.value = {
     left: `calc(50% + ${offsetX}px)`,
-    top: '30%'
+    top: `calc(50% - ${20 * scale.value}px)`
   }
 
   setTimeout(() => {
@@ -87,7 +92,6 @@ function performHit(x, y) {
 .wooden-fish-container {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -101,11 +105,14 @@ function performHit(x, y) {
   cursor: pointer;
 }
 
-/* 木鱼本体 */
+.fish-group {
+  position: relative;
+  transform: scale(var(--group-scale, 1));
+  transition: transform 0.2s ease-out;
+}
+
 .fish {
   position: relative;
-  transform: scale(var(--fish-scale, 1));
-  transition: transform 0.1s;
 }
 
 .fish.hitting {
@@ -113,14 +120,14 @@ function performHit(x, y) {
 }
 
 @keyframes fishHit {
-  0% { transform: scale(var(--fish-scale, 1)); }
-  50% { transform: scale(var(--fish-scale, 1)) translateY(8px); }
-  100% { transform: scale(var(--fish-scale, 1)); }
+  0% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+  100% { transform: translateY(0); }
 }
 
 .fish-body {
-  width: var(--fish-width);
-  height: var(--fish-height);
+  width: clamp(140px, 20vw, 200px);
+  height: clamp(84px, 12vw, 120px);
   background: var(--fish-primary, #8B4513);
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   border: var(--pixel-size) solid var(--fish-accent, #654321);
@@ -136,11 +143,11 @@ function performHit(x, y) {
 .fish-body::before {
   content: '';
   position: absolute;
-  top: clamp(-20px, -5vw, -40px);
+  top: clamp(-18px, -4vw, -30px);
   left: 50%;
   transform: translateX(-50%);
-  width: clamp(40px, 8vw, 80px);
-  height: clamp(25px, 5vw, 50px);
+  width: clamp(36px, 6vw, 56px);
+  height: clamp(22px, 3.5vw, 36px);
   background: var(--fish-primary, #8B4513);
   border-radius: 30px 30px 0 0;
   border: var(--pixel-size) solid var(--fish-accent, #654321);
@@ -154,13 +161,13 @@ function performHit(x, y) {
   text-shadow: 2px 2px 0 var(--fish-accent, #654321);
 }
 
-/* 锤子 */
+/* 锤子 - 整体在木鱼右侧，锤头在左上，锤柄在右下 */
 .hammer {
   position: absolute;
-  top: clamp(5%, 8vw, 15%);
-  right: clamp(15%, 20vw, 30%);
+  top: clamp(-30px, -6vw, -50px);
+  left: 50%;
+  transform: translateX(200%) rotate(-45deg);
   transform-origin: bottom center;
-  transform: rotate(-30deg);
   transition: transform 0.1s;
   z-index: 10;
 }
@@ -170,28 +177,28 @@ function performHit(x, y) {
 }
 
 @keyframes hammerHit {
-  0% { transform: rotate(-30deg); }
-  50% { transform: rotate(20deg); }
-  100% { transform: rotate(-30deg); }
+  0% { transform: translateX(200%) rotate(-45deg); }
+  50% { transform: translateX(200%) rotate(45deg); }
+  100% { transform: translateX(200%) rotate(-45deg); }
 }
 
 .hammer-head {
-  width: clamp(30px, 5vw, 50px);
-  height: clamp(35px, 6vw, 60px);
+  width: clamp(34px, 5.5vw, 54px);
+  height: clamp(38px, 6.5vw, 62px);
   background: linear-gradient(135deg, #888 0%, #555 100%);
   border: 3px solid #333;
   border-radius: 4px;
+  margin: 0 auto;
 }
 
 .hammer-handle {
-  width: clamp(10px, 2vw, 18px);
-  height: clamp(50px, 10vw, 100px);
+  width: clamp(10px, 1.8vw, 16px);
+  height: clamp(60px, 11vw, 100px);
   background: linear-gradient(90deg, #8B4513 0%, #654321 50%, #8B4513 100%);
   margin: 0 auto;
-  border-radius: 0 0 4px 4px;
+  border-radius: 4px;
 }
 
-/* 点击效果 */
 .click-effect {
   position: absolute;
   top: 0;

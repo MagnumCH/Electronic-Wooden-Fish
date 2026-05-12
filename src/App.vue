@@ -20,16 +20,19 @@
         <AchievementPanel />
       </aside>
     </main>
+
+    <AchievementPopup v-if="isLoaded" :achievement="latestAchievement" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import GameHeader from './components/GameHeader.vue'
 import WoodenFish from './components/WoodenFish.vue'
 import ScorePanel from './components/ScorePanel.vue'
 import UpgradeShop from './components/UpgradeShop.vue'
 import AchievementPanel from './components/AchievementPanel.vue'
+import AchievementPopup from './components/AchievementPopup.vue'
 import { useGameData } from './composables/useGameData'
 import { useAudio } from './composables/useAudio'
 
@@ -37,12 +40,36 @@ const {
   loadGame,
   saveGame,
   calculateOfflineEarnings,
-  claimOfflineEarnings
+  claimOfflineEarnings,
+  achievements,
+  achievementsConfig
 } = useGameData()
 
-const { toggleSound, initAudio } = useAudio()
+const { toggleSound, initAudio, createSound } = useAudio()
 
 const offlineEarnings = ref(0)
+const latestAchievement = ref(null)
+const isLoaded = ref(false) // 数据是否已加载完成
+const initialAchievementsLength = ref(0) // 初始成就数量，用于比较
+
+// 监听成就变化，播放成就音效并显示弹窗（仅在新成就解锁时触发）
+watch(() => achievements.value.length, (newLen) => {
+  // 只有在数据加载完成后，且成就数量超过初始值时才触发（新解锁成就）
+  if (isLoaded.value && newLen > initialAchievementsLength.value) {
+    // 找出最新解锁的成就
+    const newAchievementId = achievements.value[newLen - 1]
+    const achievement = achievementsConfig.find(a => a.id === newAchievementId)
+    if (achievement) {
+      latestAchievement.value = achievement
+      createSound('achievement')
+
+      // 2.5秒后清除
+      setTimeout(() => {
+        latestAchievement.value = null
+      }, 2500)
+    }
+  }
+})
 
 function handleClaimOffline() {
   const earnings = claimOfflineEarnings()
@@ -57,8 +84,14 @@ let saveInterval
 onMounted(() => {
   loadGame()
 
+  // 记录初始成就数量，用于比较
+  initialAchievementsLength.value = achievements.value.length
+
   // 计算离线收益
   offlineEarnings.value = calculateOfflineEarnings()
+
+  // 标记数据加载完成，用于控制成就弹窗逻辑
+  isLoaded.value = true
 
   // 初始化音频（需要用户交互后才能使用）
   document.addEventListener('click', initAudio, { once: true })
