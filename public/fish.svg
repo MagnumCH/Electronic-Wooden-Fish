@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="8" y="24" width="48" height="32" rx="4" fill="#8B4513"/>
+  <rect x="12" y="28" width="40" height="24" rx="2" fill="#A0522D"/>
+  <rect x="28" y="16" width="8" height="12" fill="#8B4513"/>
+  <rect x="26" y="12" width="12" height="8" rx="2" fill="#654321"/>
+  <text x="32" y="44" text-anchor="middle" font-size="16" fill="#FFF8DC">魚</text>
+</svg>

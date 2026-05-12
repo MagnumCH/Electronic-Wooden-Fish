@@ -1,0 +1,165 @@
+/* 复古像素风全局样式 */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* 复古 NES 配色 */
+  --color-bg: #1a1a2e;
+  --color-bg-light: #16213e;
+  --color-primary: #e94560;
+  --color-secondary: #0f3460;
+  --color-gold: #ffd700;
+  --color-white: #eaeaea;
+  --color-dark: #0f0f0f;
+  --color-green: #4ade80;
+  --color-cyan: #22d3ee;
+  --color-purple: #a855f7;
+
+  /* 像素单位 - 根据视口动态调整 */
+  --pixel-size: clamp(3px, 0.5vmin, 6px);
+  --font-pixel: 'Press Start 2P', cursive;
+
+  /* 响应式字体大小 */
+  --font-size-xs: clamp(10px, 1.8vmin, 16px);
+  --font-size-sm: clamp(12px, 2vmin, 18px);
+  --font-size-md: clamp(14px, 2.5vmin, 22px);
+  --font-size-lg: clamp(18px, 3vmin, 32px);
+  --font-size-xl: clamp(28px, 5vmin, 64px);
+  --font-size-title: clamp(24px, 4vmin, 48px);
+
+  /* 响应式间距 */
+  --spacing-xs: clamp(4px, 1vmin, 8px);
+  --spacing-sm: clamp(8px, 1.5vmin, 16px);
+  --spacing-md: clamp(12px, 2vmin, 24px);
+  --spacing-lg: clamp(16px, 3vmin, 32px);
+  --spacing-xl: clamp(24px, 4vmin, 48px);
+
+  /* 木鱼尺寸 */
+  --fish-width: clamp(150px, 25vw, 300px);
+  --fish-height: clamp(90px, 15vw, 180px);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-pixel);
+  background: var(--color-bg);
+  color: var(--color-white);
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+/* 像素化边框 - 响应式 */
+.pixel-border {
+  border: var(--pixel-size) solid var(--color-white);
+  box-shadow:
+    calc(var(--pixel-size) * 2) calc(var(--pixel-size) * 2) 0 0 var(--color-dark),
+    inset calc(var(--pixel-size) * -1) calc(var(--pixel-size) * -1) 0 0 var(--color-dark);
+}
+
+/* CRT 扫描线效果 */
+.crt-effect {
+  position: relative;
+}
+
+.crt-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* 像素按钮 - 响应式 */
+.pixel-btn {
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--pixel-size) solid var(--color-white);
+  background: var(--color-secondary);
+  color: var(--color-white);
+  cursor: pointer;
+  box-shadow:
+    calc(var(--pixel-size) * 2) calc(var(--pixel-size) * 2) 0 0 var(--color-dark);
+  transition: transform 0.1s;
+  white-space: nowrap;
+}
+
+.pixel-btn:hover {
+  background: var(--color-primary);
+}
+
+.pixel-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-secondary);
+  border: 2px solid var(--color-dark);
+}
+
+/* 闪烁动画 - 用于提示 */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.blink {
+  animation: blink 1s infinite;
+}
+
+/* 响应式媒体查询 - 大屏幕优化 */
+@media (min-width: 1920px) {
+  :root {
+    --pixel-size: 6px;
+  }
+}
+
+/* 超大屏幕 */
+@media (min-width: 2560px) {
+  :root {
+    --pixel-size: 8px;
+  }
+}
+
+/* 小屏幕优化 */
+@media (max-height: 600px) {
+  :root {
+    --spacing-lg: 12px;
+    --spacing-xl: 24px;
+  }
+}
