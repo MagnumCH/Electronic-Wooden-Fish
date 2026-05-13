@@ -1,6 +1,9 @@
 {
   "name": "electronic-wooden-fish",
+  "productName": "电子木鱼",
   "version": "1.0.0",
+  "description": "禅意敲击游戏 - 电子木鱼",
+  "author": "Electronic Wooden Fish",
   "type": "commonjs",
   "scripts": {
     "dev": "vite",
@@ -17,6 +20,7 @@
     "electron": "^27.3.0",
     "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2",
+    "rcedit": "^4.0.1",
     "vite": "^5.0.12"
   }
 }

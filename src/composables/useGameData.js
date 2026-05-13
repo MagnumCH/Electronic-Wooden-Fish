@@ -2,6 +2,11 @@ import { ref, computed, watch } from 'vue'
 
 const STORAGE_KEY = 'electronic-wooden-fish-save'
 
+// 离线收益常量
+const MAX_OFFLINE_TIME_MS = 8 * 60 * 60 * 1000
+const OFFLINE_EARNINGS_MULTIPLIER = 10
+const MAX_OFFLINE_HOURS = 8
+
 // 游戏状态
 const merit = ref(0)
 const totalMerit = ref(0)
@@ -12,6 +17,9 @@ const unlockedSkins = ref(['default'])
 const currentSkin = ref('default')
 const achievements = ref([])
 const lastSaveTime = ref(Date.now())
+
+// 成就检查防重记录
+let processedAchievementsInFrame = new Set()
 
 // 升级配置
 const upgradeConfig = {
@@ -83,18 +91,27 @@ function upgrade(type) {
   return false
 }
 
-// 检查成就
+// 检查成就（防止同一帧内重复触发）
 function checkAchievements() {
   achievementsConfig.forEach(achievement => {
-    if (!achievements.value.includes(achievement.id) && achievement.condition({
+    if (achievements.value.includes(achievement.id)) return
+    if (processedAchievementsInFrame.has(achievement.id)) return
+
+    if (achievement.condition({
       totalMerit: totalMerit.value,
       fishLevel: fishLevel.value,
       hammerLevel: hammerLevel.value
     })) {
       achievements.value.push(achievement.id)
+      processedAchievementsInFrame.add(achievement.id)
       merit.value += achievement.reward
       totalMerit.value += achievement.reward
     }
+  })
+
+  // 在下一帧清空重试记录
+  requestAnimationFrame(() => {
+    processedAchievementsInFrame.clear()
   })
 }
 
@@ -113,18 +130,18 @@ function unlockSkin(skinId) {
 function setSkin(skinId) {
   if (unlockedSkins.value.includes(skinId)) {
     currentSkin.value = skinId
+    return true
   }
+  return false
 }
 
 // 计算离线收益
 function calculateOfflineEarnings() {
   const now = Date.now()
   const elapsed = now - lastSaveTime.value
-  const maxOfflineTime = 8 * 60 * 60 * 1000 // 8小时
-  const offlineTime = Math.min(elapsed, maxOfflineTime)
+  const offlineTime = Math.min(elapsed, MAX_OFFLINE_TIME_MS)
   const hours = offlineTime / (60 * 60 * 1000)
-  // 每小时获得相当于当前点击功率 * 10 的功德
-  return Math.floor(hours * getClickPower() * 10)
+  return Math.floor(hours * getClickPower() * OFFLINE_EARNINGS_MULTIPLIER)
 }
 
 // 领取离线收益
@@ -159,14 +176,16 @@ function loadGame() {
   if (saved) {
     try {
       const data = JSON.parse(saved)
-      merit.value = data.merit || 0
-      totalMerit.value = data.totalMerit || 0
-      fishLevel.value = data.fishLevel || 1
-      hammerLevel.value = data.hammerLevel || 1
-      unlockedSkins.value = data.unlockedSkins || ['default']
-      currentSkin.value = data.currentSkin || 'default'
-      achievements.value = data.achievements || []
-      lastSaveTime.value = data.lastSaveTime || Date.now()
+
+      // 数据校验，防止篡改或损坏
+      merit.value = (typeof data.merit === 'number' && !isNaN(data.merit)) ? data.merit : 0
+      totalMerit.value = (typeof data.totalMerit === 'number' && !isNaN(data.totalMerit)) ? data.totalMerit : 0
+      fishLevel.value = (typeof data.fishLevel === 'number' && data.fishLevel >= 1) ? data.fishLevel : 1
+      hammerLevel.value = (typeof data.hammerLevel === 'number' && data.hammerLevel >= 1) ? data.hammerLevel : 1
+      unlockedSkins.value = Array.isArray(data.unlockedSkins) ? data.unlockedSkins : ['default']
+      currentSkin.value = (typeof data.currentSkin === 'string' && unlockedSkins.value.includes(data.currentSkin)) ? data.currentSkin : 'default'
+      achievements.value = Array.isArray(data.achievements) ? data.achievements : []
+      lastSaveTime.value = (typeof data.lastSaveTime === 'number' && data.lastSaveTime > 0) ? data.lastSaveTime : Date.now()
     } catch (e) {
       console.error('Failed to load save data:', e)
     }
@@ -189,6 +208,10 @@ export function useGameData() {
     upgradeConfig,
     skinsConfig,
     achievementsConfig,
+
+    // 常量
+    MAX_OFFLINE_TIME_MS,
+    MAX_OFFLINE_HOURS,
 
     // 方法
     getUpgradeCost,

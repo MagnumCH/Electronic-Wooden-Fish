@@ -93,9 +93,6 @@ onMounted(() => {
   // 标记数据加载完成，用于控制成就弹窗逻辑
   isLoaded.value = true
 
-  // 初始化音频（需要用户交互后才能使用）
-  document.addEventListener('click', initAudio, { once: true })
-
   // 每30秒自动保存
   saveInterval = setInterval(() => {
     saveGame()

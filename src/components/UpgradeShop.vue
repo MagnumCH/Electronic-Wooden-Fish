@@ -99,18 +99,23 @@ const hammerCost = computed(() => getUpgradeCost('hammer'))
 function handleUpgrade(type) {
   if (upgrade(type)) {
     createSound('upgrade')
+  } else {
+    createSound('click')
   }
 }
 
 function handleBuySkin(skinId) {
   if (unlockSkin(skinId)) {
     createSound('skinUnlock')
+  } else {
+    createSound('click')
   }
 }
 
 function handleSelectSkin(skinId) {
-  setSkin(skinId)
-  createSound('click')
+  if (setSkin(skinId)) {
+    createSound('click')
+  }
 }
 </script>
 

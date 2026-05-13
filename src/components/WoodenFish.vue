@@ -55,13 +55,19 @@ const fishStyle = computed(() => {
 })
 
 function handleClick(e) {
-  performHit(e.clientX, e.clientY)
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  performHit(x, y)
 }
 
 function handleTouch(e) {
   e.preventDefault()
+  const rect = e.currentTarget.getBoundingClientRect()
   const touch = e.touches[0]
-  performHit(touch.clientX, touch.clientY)
+  const x = touch.clientX - rect.left
+  const y = touch.clientY - rect.top
+  performHit(x, y)
 }
 
 function performHit(x, y) {
@@ -69,18 +75,18 @@ function performHit(x, y) {
   createSound('hit')
 
   isHitting.value = true
-  setTimeout(() => {
-    isHitting.value = false
-  }, 150)
 
   addMerit()
 
-  showEffect.value = true
-  const offsetX = (Math.random() - 0.5) * 60
   popStyle.value = {
-    left: `calc(50% + ${offsetX}px)`,
-    top: `calc(50% - ${20 * scale.value}px)`
+    left: `${x}px`,
+    top: `${y}px`
   }
+  showEffect.value = true
+
+  setTimeout(() => {
+    isHitting.value = false
+  }, 150)
 
   setTimeout(() => {
     showEffect.value = false

@@ -1,7 +1,7 @@
 # 电子木鱼 - Electronic Wooden Fish
 
 <p align="center">
-  <img src="public/fish.svg" width="120" alt="电子木鱼 Logo">
+  <img src="icon.png" width="120" alt="电子木鱼 Logo">
 </p>
 
 <p align="center">
